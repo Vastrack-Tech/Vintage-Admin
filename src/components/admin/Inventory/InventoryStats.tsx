@@ -1,28 +1,57 @@
 "use client";
 
-import { useInventoryStats } from "@/hooks/useInventory";
-import { Box, ArrowRight, TrendingUp, TrendingDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/axiosInstance";
+import { Box, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// --- HOOK ---
+const useInventoryStats = () => {
+  return useQuery({
+    queryKey: ["admin-inventory-stats"],
+    queryFn: async () => {
+      const { data } = await api.get("/admin/inventory/stats");
+      return data;
+    },
+  });
+};
 
 export function InventoryStats() {
   const { data: stats, isLoading } = useInventoryStats();
 
   if (isLoading) return <StatsSkeleton />;
 
+  // Map API response to UI Cards
   const cards = [
-    { ...stats?.totalProducts, icon: Box, color: "bg-[#DC8404] text-black" },
     {
-      ...stats?.newProducts,
+      label: "Total Products",
+      value: stats?.totalProducts?.value || 0,
+      trend: stats?.totalProducts?.trend || 0,
+      trendDirection: stats?.totalProducts?.trendDirection || "up",
+      icon: Box,
+      color: "bg-[#DC8404] text-white",
+    },
+    {
+      label: "New Products",
+      value: stats?.newProducts?.value || 0,
+      trend: stats?.newProducts?.trend || 0,
+      trendDirection: stats?.newProducts?.trendDirection || "up",
       icon: ArrowRight,
       color: "bg-[#FFF8E6] text-[#DC8404]",
     },
     {
-      ...stats?.productsSold,
+      label: "Product Sold",
+      value: stats?.productsSold?.value || 0,
+      trend: stats?.productsSold?.trend || 0,
+      trendDirection: stats?.productsSold?.trendDirection || "down",
       icon: ArrowRight,
       color: "bg-[#FFF8E6] text-[#DC8404]",
     },
     {
-      ...stats?.emptyProducts,
+      label: "Empty Products",
+      value: stats?.emptyProducts?.value || 0,
+      trend: stats?.emptyProducts?.trend || 0,
+      trendDirection: stats?.emptyProducts?.trendDirection || "down",
       icon: ArrowRight,
       color: "bg-[#FFF8E6] text-[#DC8404]",
     },
@@ -37,10 +66,10 @@ export function InventoryStats() {
         >
           <div className="flex justify-between items-start mb-4">
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-black">
+              <span className="text-sm font-medium text-gray-500">
                 {card.label}
               </span>
-              <h3 className="text-3xl font-bold text-black">
+              <h3 className="text-3xl font-bold text-gray-900">
                 {card.value?.toLocaleString()}
               </h3>
             </div>
@@ -58,7 +87,7 @@ export function InventoryStats() {
               {card.trendDirection === "up" ? "+" : "-"}
               {card.trend}%
             </span>
-            <span className="text-black">Since Last week</span>
+            <span className="text-gray-400">Since Last week</span>
           </div>
         </div>
       ))}
