@@ -38,7 +38,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 p-8 lg:p-2 overflow-auto h-screen">
         {isLoading ? (
           // Spinner shows ONLY inside the content area
-          <div className="h-full flex flex-col items-center justify-center text-gray-400 gap-3">
+          <div className="h-full flex flex-col items-center justify-center text-black gap-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#DC8404]" />
             <p className="text-sm font-medium">Loading ...</p>
           </div>

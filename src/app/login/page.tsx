@@ -78,7 +78,7 @@ export default function LoginPage() {
               type="email"
               placeholder="Enter your email"
               {...register("email")}
-              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
             />
             {errors.email && (
               <p className="mt-1 text-xs text-red-500">
@@ -92,7 +92,7 @@ export default function LoginPage() {
               type="password"
               placeholder="Enter your Password"
               {...register("password")}
-              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
             />
             {errors.password && (
               <p className="mt-1 text-xs text-red-500">
@@ -113,7 +113,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-black text-black rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>

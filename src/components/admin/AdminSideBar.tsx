@@ -41,7 +41,7 @@ export function AdminSidebar() {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
                 isActive
                   ? "bg-[#FFF8E6] text-[#DC8404]"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-black"
+                  : "text-black hover:bg-gray-50 hover:text-black"
               }`}
             >
               <link.icon size={20} />

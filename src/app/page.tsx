@@ -49,10 +49,10 @@ export default function DashboardPage() {
 
       {/* Placeholder for Charts (spaced automatically by gap-6 if added to grid or margin-top) */}
       <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white rounded-[20px] h-[400px] flex items-center justify-center text-gray-400 border border-gray-100 shadow-sm">
+        <div className="lg:col-span-2 bg-white rounded-[20px] h-[400px] flex items-center justify-center text-black border border-gray-100 shadow-sm">
           Sales Chart Placeholder
         </div>
-        <div className="bg-white rounded-[20px] h-[400px] flex items-center justify-center text-gray-400 border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-[20px] h-[400px] flex items-center justify-center text-black border border-gray-100 shadow-sm">
           Low Stock Placeholder
         </div>
       </div>
