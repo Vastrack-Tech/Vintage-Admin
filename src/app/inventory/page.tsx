@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, Plus, Filter } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InventoryStats } from "@/components/admin/Inventory/InventoryStats";
 import { ProductTable } from "@/components/admin/Inventory/ProductTable";

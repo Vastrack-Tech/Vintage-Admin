@@ -7,10 +7,13 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "flagcdn.com",
       },
-      // You will likely need these later for product images too:
       {
         protocol: "https",
         hostname: "placehold.co",
+      },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
       },
       {
         protocol: "https",
