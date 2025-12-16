@@ -65,15 +65,23 @@ export function InventoryStats() {
           className="bg-white p-6 rounded-[20px] shadow-sm border border-gray-100 relative overflow-hidden"
         >
           <div className="flex justify-between items-start mb-4">
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-gray-500">
+            {/* FIX 1: 'min-w-0' is required for flex children to allow text truncation */}
+            <div className="flex flex-col gap-1 min-w-0 flex-1 mr-2">
+              <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
                 {card.label}
               </span>
-              <h3 className="text-3xl font-bold text-gray-900">
+
+              {/* FIX 2: 'truncate' cuts off the text with '...' if it gets too long */}
+              <h3
+                className="text-2xl xl:text-3xl font-bold text-gray-900 truncate w-full"
+                title={card.value?.toLocaleString()} // Shows full number on hover
+              >
                 {card.value?.toLocaleString()}
               </h3>
             </div>
-            <div className={`p-3 rounded-full ${card.color}`}>
+
+            {/* FIX 3: 'shrink-0' stops the icon from getting squashed */}
+            <div className={`p-3 rounded-full shrink-0 ${card.color}`}>
               <card.icon size={20} />
             </div>
           </div>
@@ -87,7 +95,9 @@ export function InventoryStats() {
               {card.trendDirection === "up" ? "+" : "-"}
               {card.trend}%
             </span>
-            <span className="text-gray-400">Since Last week</span>
+            <span className="text-gray-400 whitespace-nowrap">
+              Since Last week
+            </span>
           </div>
         </div>
       ))}

@@ -1,7 +1,6 @@
 "use client";
 import { useOrderStats } from "@/hooks/useAdminOrders";
 import { ShoppingCart, DollarSign, Clock, CheckCircle } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export function OrderStats() {
   const { data: stats, isLoading } = useOrderStats();
@@ -20,19 +19,19 @@ export function OrderStats() {
       label: "Order Value",
       value: `₦${stats?.totalSales?.toLocaleString()}`,
       icon: DollarSign,
-      color: "bg-green-600",
+      color: "bg-[#DC8404]",
     },
     {
       label: "Pending",
       value: stats?.pendingOrders,
       icon: Clock,
-      color: "bg-yellow-500",
+      color: "bg-[#DC8404]",
     },
     {
       label: "Fulfilled",
       value: stats?.completedOrders,
       icon: CheckCircle,
-      color: "bg-blue-600",
+      color: "bg-[#DC8404]",
     },
   ];
 

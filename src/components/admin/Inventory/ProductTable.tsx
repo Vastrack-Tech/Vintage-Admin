@@ -124,11 +124,10 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
                       </span>
                     </div>
                   </td>
-                  <td className="p-6 text-sm font-semibold">
+                  <td className="p-6 text-black text-sm font-semibold">
                     ₦{Number(product.priceNgn).toLocaleString()}
                   </td>
                   <td className="p-6 text-sm text-black">
-                    {/* Sum of all variant stocks or base stock if no variants */}
                     {product.variants && product.variants.length > 0
                       ? product.variants.reduce(
                           (acc: number, v: any) => acc + (v.stockQuantity || 0),
@@ -140,7 +139,7 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
                     {product.category?.name || "-"}
                   </td>
                   <td className="p-6 text-right">
-                    <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-2  transition-opacity">
                       {/* EDIT BUTTON LINKING TO EDIT PAGE */}
                       <Link href={`/inventory/${product.id}`}>
                         <button className="p-2 text-black hover:text-[#DC8404] hover:bg-[#FFF8E6] rounded-full transition-colors">

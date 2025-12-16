@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { Upload, X, Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { toast } from "sonner";
 import api from "@/lib/axiosInstance";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import ImageUpload from "@/components/ui/image-upload"; // 👈 Import the new component
 
 // --- HOOK FOR CATEGORIES ---
 const useCategories = () => {
@@ -31,8 +31,8 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const queryClient = useQueryClient();
   const { data: categories, isLoading: isLoadingCategories } = useCategories();
 
+  // State for gallery URLs (managed by ImageUpload component)
   const [images, setImages] = useState<string[]>(initialData?.gallery || []);
-  const [uploading, setUploading] = useState(false);
 
   // --- FORM SETUP ---
   const {
@@ -48,9 +48,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
       priceNgn: "",
       priceUsd: "",
       compareAtPriceNgn: "",
-      compareAtPriceUsd: "", // New Field
+      compareAtPriceUsd: "",
       stockQuantity: "",
-      isHot: false, // New Field
+      isHot: false,
       variants: [],
     },
   });
@@ -64,20 +64,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
     name: "variants",
   });
 
-  // --- HANDLERS ---
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    setUploading(true);
-
-    setTimeout(() => {
-      const file = e.target.files![0];
-      const mockUrl = URL.createObjectURL(file);
-      setImages((prev) => [...prev, mockUrl]);
-      setUploading(false);
-    }, 1000);
-  };
-
+  // --- MUTATION ---
   const mutation = useMutation({
     mutationFn: async (data: any) => {
       const payload = {
@@ -90,7 +77,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
         compareAtPriceUsd: data.compareAtPriceUsd
           ? Number(data.compareAtPriceUsd)
           : null,
-        gallery: images,
+        gallery: images, // 👈 Send Cloudinary URLs
         isHot: Boolean(data.isHot),
         variants: data.variants.map((v: any) => ({
           ...v,
@@ -134,61 +121,26 @@ export function ProductForm({ initialData }: ProductFormProps) {
       className="bg-white text-black p-6 md:p-8 rounded-[20px] shadow-sm max-w-7xl mx-auto border border-gray-100"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* LEFT COLUMN: IMAGES */}
+        {/* LEFT COLUMN: CLOUDINARY IMAGE UPLOAD */}
         <div className="lg:col-span-5 space-y-6">
           <label className="block text-sm font-bold text-black">
-            Upload Image
+            Product Images
           </label>
-          <div className="border-2 border-dashed border-gray-300 rounded-2xl bg-[#F3F4F6] h-[350px] md:h-[400px] flex flex-col items-center justify-center relative hover:border-[#DC8404] transition-colors group cursor-pointer overflow-hidden">
-            <input
-              type="file"
-              multiple
-              onChange={handleImageUpload}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+          <div className="bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-200">
+            {/* 👇 The new component handles Upload + Preview + Delete 
+                 It updates the 'images' state directly with Cloudinary URLs
+             */}
+            <ImageUpload
+              value={images}
+              disabled={mutation.isPending}
+              onChange={(newUrls) => setImages(newUrls)}
+              onRemove={(urlToRemove) =>
+                setImages(images.filter((current) => current !== urlToRemove))
+              }
             />
-            {uploading ? (
-              <div className="flex flex-col items-center">
-                <Loader2 className="w-10 h-10 text-[#DC8404] animate-spin mb-2" />
-                <span className="text-sm text-black">Uploading...</span>
-              </div>
-            ) : images.length > 0 ? (
-              <Image
-                src={images[images.length - 1]}
-                alt="Preview"
-                fill
-                className="object-cover opacity-50"
-              />
-            ) : (
-              <div className="text-center p-4">
-                <div className="w-12 h-12 bg-orange-100 text-[#DC8404] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Upload size={20} />
-                </div>
-                <span className="text-[#DC8404] font-medium block">
-                  Click to upload image
-                </span>
-                <span className="text-black text-xs mt-1">
-                  SVG, PNG, JPG or GIF (max. 800x400px)
-                </span>
-              </div>
-            )}
-          </div>
-
-          <div className="grid grid-cols-4 gap-4">
-            {images.map((img, idx) => (
-              <div
-                key={idx}
-                className="aspect-square relative rounded-xl overflow-hidden border border-gray-200 group"
-              >
-                <Image src={img} alt="Product" fill className="object-cover" />
-                <button
-                  type="button"
-                  onClick={() => setImages(images.filter((_, i) => i !== idx))}
-                  className="absolute top-1 right-1 bg-white/90 text-red-500 p-1 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
+            <p className="text-xs text-gray-400 mt-4 text-center">
+              Supported formats: JPG, PNG, WEBP. Max size: 5MB.
+            </p>
           </div>
         </div>
 
@@ -412,7 +364,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
       <div className="mt-12 w-full pt-6 border-t border-gray-100 flex justify-end">
         <Button
           type="submit"
-          disabled={mutation.isPending || uploading}
+          disabled={mutation.isPending}
           className="bg-black hover:bg-gray-800 text-white h-14 px-12 rounded-xl text-lg font-medium w-full md:w-auto shadow-lg shadow-gray-200"
         >
           {mutation.isPending ? (
