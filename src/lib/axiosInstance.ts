@@ -35,12 +35,15 @@ api.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError) => {
     if (error.response && error.response.status === 401) {
-      console.error("Unauthorized access - Redirecting to login...");
-
-      // if (typeof window !== "undefined") {
-      //   localStorage.removeItem("token");
-      //   window.location.href = "/login";
-      // }
+      if (typeof window !== "undefined") {
+        // FIX: Only redirect if we are NOT already on the login page
+        if (!window.location.pathname.includes("/login")) {
+          console.error("Session expired - Redirecting to login...");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user"); // Optional: clear user data too
+          window.location.href = "/login";
+        }
+      }
     }
     return Promise.reject(error);
   }

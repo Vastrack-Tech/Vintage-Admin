@@ -27,7 +27,7 @@ export function DeleteCategoryModal({
 }: DeleteCategoryModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[400px] text-gray-800">
         <DialogHeader>
           <div className="flex items-center gap-2 text-red-600">
             <AlertTriangle size={20} />
@@ -39,7 +39,7 @@ export function DeleteCategoryModal({
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-3 pt-4">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={onClose} className="text-white" disabled={isLoading}>
             Cancel
           </Button>
           <Button

@@ -44,7 +44,7 @@ export function CategoryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] text-gray-800">
         <DialogHeader>
           <DialogTitle>
             {initialData ? "Edit Category" : "Add New Category"}
@@ -68,7 +68,7 @@ export function CategoryModal({
             />
           </div>
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" className="text-white" onClick={onClose}>
               Cancel
             </Button>
             <Button

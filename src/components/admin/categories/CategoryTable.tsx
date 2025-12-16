@@ -88,13 +88,13 @@ export function CategoryTable() {
         <div className="flex items-center gap-3 w-full md:w-auto">
           {/* SEARCH */}
           <div className="relative flex-1 md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-800 w-4 h-4" />
             <input
               type="text"
               placeholder="Search Category..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
+              className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 text-gray-800 py-2.5 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
             />
           </div>
 
