@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signInAction } from "@/lib/actions/authActions";
 import { useQueryClient } from "@tanstack/react-query";
+import Logo from "@/components/Logo";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -60,8 +61,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#FDF8F2]">
       <div className="w-full max-w-md px-6 py-12">
         {/* Header / Toggle */}
+        {/* Added mb-4 for spacing and mx-auto to the Logo */}
+        <div className="text-center mb-4">
+          <Logo className="w-24 md:w-20 mx-auto" />
+        </div>
+
         <div className="text-center mb-10 space-x-4 text-lg">
-          <span className="text-black font-bold cursor-default">Sign in</span>
+          <span className="text-black font-bold cursor-default">Admin Log in</span>
         </div>
 
         {/* Error Banner */}
@@ -113,12 +119,11 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-black text-black rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
       </div>
     </div>
   );

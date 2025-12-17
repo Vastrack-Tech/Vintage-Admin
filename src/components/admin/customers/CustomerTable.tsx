@@ -38,6 +38,9 @@ export function CustomerTable() {
     ...filters,
   });
 
+  console.log(data);
+  
+
   const handleApplyFilter = (newFilters: CustomerFilterValues) => {
     setFilters(newFilters);
     setPage(1);
@@ -141,7 +144,7 @@ export function CustomerTable() {
                     {user.phone || "N/A"}
                   </td>
                   <td
-                    className="p-4 text-gray-500 text-xs max-w-[200px] truncate"
+                    className="p-4 text-gray-500 text-xs max-w-[300px] whitespace-normal leading-relaxed"
                     title={user.address}
                   >
                     {user.address || "No Address Provided"}
