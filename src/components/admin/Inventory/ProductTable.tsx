@@ -6,16 +6,16 @@ import Link from "next/link";
 import {
   Search,
   Filter,
-  Download,
   Pencil,
   Trash2,
   ChevronLeft,
   ChevronRight,
   Loader2,
 } from "lucide-react";
-import { useInventory } from "@/hooks/useInventory";
+import { useInventory, useDeleteProduct } from "@/hooks/useInventory"; // Import the delete hook
 import { cn } from "@/lib/utils";
 import { FilterValues } from "./InventoryFilter";
+import { DeleteProductModal } from "./DeleteProductModal"; // Import the modal
 
 interface ProductTableProps {
   onOpenFilter?: () => void;
@@ -26,16 +26,38 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
 
+  // --- DELETE STATE ---
+  const [productToDelete, setProductToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
+
   // Combine all params for the hook
   const { data, isLoading } = useInventory({
     page,
     limit: 10,
     search,
-    ...filters, // Spread filter values (minPrice, categoryId, etc.)
+    ...filters,
   });
 
   const products = data?.data || [];
   const meta = data?.meta || { total: 0, totalPages: 1, page: 1 };
+
+  // --- HANDLERS ---
+  const handleDeleteClick = (product: any) => {
+    setProductToDelete({ id: product.id, title: product.title });
+  };
+
+  const handleConfirmDelete = () => {
+    if (productToDelete) {
+      deleteProduct(productToDelete.id, {
+        onSuccess: () => {
+          setProductToDelete(null); // Close modal on success
+        },
+      });
+    }
+  };
 
   return (
     <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
@@ -50,7 +72,7 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-100 border-none rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
+              className="w-full bg-gray-100 text-gray-800 border-none rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
             />
           </div>
           <button
@@ -59,9 +81,6 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
           >
             <Filter size={16} /> Filter
           </button>
-          {/* <button className="flex items-center gap-2 px-4 py-2.5 border border-[#DC8404] text-[#DC8404] rounded-lg text-sm font-medium hover:bg-[#FFF8E6] transition-colors">
-            <Download size={16} /> Download
-          </button> */}
         </div>
       </div>
 
@@ -139,14 +158,19 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
                     {product.category?.name || "-"}
                   </td>
                   <td className="p-6 text-right">
-                    <div className="flex items-center justify-end gap-2  transition-opacity">
-                      {/* EDIT BUTTON LINKING TO EDIT PAGE */}
+                    <div className="flex items-center justify-end gap-2 transition-opacity">
+                      {/* EDIT BUTTON */}
                       <Link href={`/inventory/${product.id}`}>
                         <button className="p-2 text-black hover:text-[#DC8404] hover:bg-[#FFF8E6] rounded-full transition-colors">
                           <Pencil size={16} />
                         </button>
                       </Link>
-                      <button className="p-2 text-black hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+
+                      {/* DELETE BUTTON */}
+                      <button
+                        onClick={() => handleDeleteClick(product)}
+                        className="p-2 text-black hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -170,9 +194,7 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
             <ChevronLeft size={16} />
           </button>
 
-          {/* Dynamic Page Numbers */}
           {Array.from({ length: Math.min(5, meta.totalPages) }, (_, i) => {
-            // Logic to show pages around current page (simplified here to 1-5 or 1-total)
             const p = i + 1;
             return (
               <button
@@ -197,6 +219,15 @@ export function ProductTable({ onOpenFilter, filters }: ProductTableProps) {
           </button>
         </div>
       </div>
+
+      {/* DELETE MODAL */}
+      <DeleteProductModal
+        isOpen={!!productToDelete}
+        onClose={() => setProductToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        productName={productToDelete?.title}
+      />
     </div>
   );
 }

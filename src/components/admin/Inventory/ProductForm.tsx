@@ -80,7 +80,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
         gallery: images, // 👈 Send Cloudinary URLs
         isHot: Boolean(data.isHot),
         variants: data.variants.map((v: any) => ({
-          ...v,
+          name: v.name,
           stockQuantity: Number(v.stockQuantity),
           attributes: {},
         })),
