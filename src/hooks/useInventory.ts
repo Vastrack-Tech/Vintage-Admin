@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import api from "@/lib/axiosInstance";
 
 // Types
@@ -19,7 +20,9 @@ export interface InventoryStatsData {
 }
 
 export const useInventory = (
-  params: { page: number; limit?: number; search?: string; status?: string } = { page: 1 }
+  params: { page: number; limit?: number; search?: string; status?: string } = {
+    page: 1,
+  }
 ) => {
   return useQuery({
     queryKey: ["admin-inventory", params],
@@ -63,6 +66,24 @@ export const useInventoryStats = () => {
           trendDirection: "up",
         },
       } as InventoryStatsData;
+    },
+  });
+};
+
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      const { data } = await api.delete(`/admin/inventory/${productId}`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["admin-inventory"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to delete product");
     },
   });
 };
