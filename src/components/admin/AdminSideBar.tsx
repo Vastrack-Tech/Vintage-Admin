@@ -18,6 +18,7 @@ const links = [
   { name: "Orders", href: "/orders", icon: ShoppingBag },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Categories", href: "/categories", icon: FolderTree },
+  { name: "Requests", href: "/requests", icon: Users },
   // { name: "Banners", href: "/admin/banners", icon: ImageIcon },
   // { name: "Gift Cards", href: "/admin/gift-cards", icon: Gift },
 ];

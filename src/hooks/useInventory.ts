@@ -27,9 +27,36 @@ export const useInventory = (
   return useQuery({
     queryKey: ["admin-inventory", params],
     queryFn: async () => {
-      // In real app: GET /admin/inventory?page=1&search=...
       const { data } = await api.get("/admin/inventory", { params });
       return data;
+    },
+  });
+};
+
+export const useAdminProduct = (id: string | null) => {
+  return useQuery({
+    queryKey: ["admin-product", id],
+    queryFn: async () => {
+      const { data } = await api.get(`/admin/inventory/${id}`);
+      return data;
+    },
+    enabled: !!id, // Only run if ID exists
+  });
+};
+
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (productId: string) => {
+      const { data } = await api.delete(`/admin/inventory/${productId}`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success("Product deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["admin-inventory"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to delete product");
     },
   });
 };
@@ -70,20 +97,20 @@ export const useInventoryStats = () => {
   });
 };
 
-export const useDeleteProduct = () => {
-  const queryClient = useQueryClient();
+// export const useDeleteProduct = () => {
+//   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (productId: string) => {
-      const { data } = await api.delete(`/admin/inventory/${productId}`);
-      return data;
-    },
-    onSuccess: () => {
-      toast.success("Product deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["admin-inventory"] });
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to delete product");
-    },
-  });
-};
+//   return useMutation({
+//     mutationFn: async (productId: string) => {
+//       const { data } = await api.delete(`/admin/inventory/${productId}`);
+//       return data;
+//     },
+//     onSuccess: () => {
+//       toast.success("Product deleted successfully");
+//       queryClient.invalidateQueries({ queryKey: ["admin-inventory"] });
+//     },
+//     onError: (error: any) => {
+//       toast.error(error.response?.data?.message || "Failed to delete product");
+//     },
+//   });
+// };
