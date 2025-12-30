@@ -21,6 +21,17 @@ export const useOrderStats = () => {
     });
 };
 
+export const useAdminOrder = (id: string | null) => {
+    return useQuery({
+        queryKey: ["admin-order", id],
+        queryFn: async () => {
+            const { data } = await api.get(`/admin/orders/${id}`);
+            return data;
+        },
+        enabled: !!id,
+    });
+};
+
 export const useUpdateOrderStatus = () => {
     const queryClient = useQueryClient();
 
