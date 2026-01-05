@@ -1,12 +1,13 @@
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/axiosInstance";
 
-export const useAdminStats = () => {
+export const useCustomers = (params?: any) => {
     return useQuery({
-        queryKey: ["admin-stats"],
+        queryKey: ["admin-customers", params],
         queryFn: async () => {
-            const { data } = await api.get("/admin/dashboard/summary");
+            const { data } = await api.get("/admin/customers", { params });
             return data;
         },
     });

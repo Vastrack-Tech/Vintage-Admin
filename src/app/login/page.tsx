@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { signInAction } from "@/lib/actions/authActions";
 import { useQueryClient } from "@tanstack/react-query";
+import Logo from "@/components/Logo";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -60,8 +61,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-[#FDF8F2]">
       <div className="w-full max-w-md px-6 py-12">
         {/* Header / Toggle */}
+        {/* Added mb-4 for spacing and mx-auto to the Logo */}
+        <div className="text-center mb-4">
+          <Logo className="w-24 md:w-20 mx-auto" />
+        </div>
+
         <div className="text-center mb-10 space-x-4 text-lg">
-          <span className="text-black font-bold cursor-default">Sign in</span>
+          <span className="text-black font-bold cursor-default">Admin Log in</span>
         </div>
 
         {/* Error Banner */}
@@ -78,7 +84,7 @@ export default function LoginPage() {
               type="email"
               placeholder="Enter your email"
               {...register("email")}
-              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
             />
             {errors.email && (
               <p className="mt-1 text-xs text-red-500">
@@ -92,7 +98,7 @@ export default function LoginPage() {
               type="password"
               placeholder="Enter your Password"
               {...register("password")}
-              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
+              className="w-full px-4 py-3 rounded-lg border border-[#F4A460] bg-white text-black placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#F4A460] transition-all"
             />
             {errors.password && (
               <p className="mt-1 text-xs text-red-500">
@@ -118,7 +124,6 @@ export default function LoginPage() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
       </div>
     </div>
   );

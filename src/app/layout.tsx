@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ReactQueryProvider from "@/providers/ReactQueryProvider";
 import { Toaster } from "sonner";
-import { AdminShell } from "@/components/admin/AdminShell"; // We move the logic here
+import { AdminShell } from "@/components/admin/AdminShell";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Space_Grotesk({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Vintage Admin",
@@ -21,7 +21,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ReactQueryProvider>
-          {/* AdminShell is now a CHILD of the Provider, so it can use hooks! */}
           <AdminShell>{children}</AdminShell>
           <Toaster richColors position="top-right" />
         </ReactQueryProvider>
