@@ -11,6 +11,7 @@ import {
 import { useAdminOrders, useUpdateOrderStatus } from "@/hooks/useAdminOrders";
 import { StatusModal } from "./StatusModal";
 import { OrderFilter, OrderFilterValues } from "./OrderFilters";
+import { OrderDetailsModal } from "./OrderDetailsModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +42,7 @@ export function OrderTable() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<OrderFilterValues>({});
+  const [viewOrderId, setViewOrderId] = useState<string | null>(null);
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -141,7 +143,8 @@ export function OrderTable() {
               orders.map((order: any) => (
                 <tr
                   key={order.id}
-                  className="hover:bg-gray-50/50 transition-colors"
+                  className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                  onClick={() => setViewOrderId(order.id)}
                 >
                   <td className="p-6 font-medium text-gray-900">{order.id}</td>
                   <td className="p-6">
@@ -170,16 +173,15 @@ export function OrderTable() {
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
+                          onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-white">
                         <DropdownMenuLabel>Update Status</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => handleStatusClick(order.id, "paid")}
-                        >
-                          Mark Paid
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleStatusClick(order.id, "paid"); }}>
+                           Mark Paid
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleStatusClick(order.id, "shipped")}
@@ -261,6 +263,13 @@ export function OrderTable() {
           onConfirm={confirmUpdate}
           isLoading={updateMutation.isPending}
           status={selectedOrder.newStatus}
+        />
+      )}
+
+      {viewOrderId && (
+        <OrderDetailsModal
+          orderId={viewOrderId}
+          onClose={() => setViewOrderId(null)}
         />
       )}
     </div>
