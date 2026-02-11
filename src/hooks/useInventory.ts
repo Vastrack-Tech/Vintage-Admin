@@ -19,10 +19,19 @@ export interface InventoryStatsData {
   emptyProducts: InventoryStat;
 }
 
+interface InventoryParams {
+  page: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  categoryId?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  view?: 'all' | 'sold' | 'empty';
+}
+
 export const useInventory = (
-  params: { page: number; limit?: number; search?: string; status?: string } = {
-    page: 1,
-  }
+  params: InventoryParams = { page: 1 }
 ) => {
   return useQuery({
     queryKey: ["admin-inventory", params],
@@ -32,6 +41,20 @@ export const useInventory = (
     },
   });
 };
+
+// export const useInventory = (
+//   params: { page: number; limit?: number; search?: string; status?: string } = {
+//     page: 1,
+//   }
+// ) => {
+//   return useQuery({
+//     queryKey: ["admin-inventory", params],
+//     queryFn: async () => {
+//       const { data } = await api.get("/admin/inventory", { params });
+//       return data;
+//     },
+//   });
+// };
 
 export const useAdminProduct = (id: string | null) => {
   return useQuery({

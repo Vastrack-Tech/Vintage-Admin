@@ -94,7 +94,7 @@ export function CategoryTable() {
               placeholder="Search Category..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
+              className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-1 placeholder-gray-400 focus:ring-[#DC8404] outline-none"
             />
           </div>
 
@@ -113,12 +113,12 @@ export function CategoryTable() {
               setPage(1);
             }}
           />
-          <Button
+          {/* <Button
             variant="outline"
-            className="gap-2 border-orange-200 text-[#DC8404] hover:bg-orange-50 rounded-lg"
+            className="gap-2 border-orange-200 bg-[#DC8404] text- hover:white rounded-lg"
           >
             <Download size={16} /> Download
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -127,17 +127,18 @@ export function CategoryTable() {
         <table className="w-full text-left">
           <thead className="bg-white text-xs text-gray-500 font-semibold border-b border-gray-100">
             <tr>
-              <th className="p-4 w-10">
+              {/* <th className="p-4 w-10">
                 <input
                   type="checkbox"
                   className="rounded text-[#DC8404] focus:ring-[#DC8404]"
                 />
-              </th>
+              </th> */}
               <th className="p-4 font-medium">Category</th>
               <th className="p-4 font-medium">Quantity</th>
               <th className="p-4 font-medium">Category Value</th>
               <th className="p-4 font-medium">Total Sales</th>
               <th className="p-4 font-medium text-right">Last Updated</th>
+              <th className="p-4 font-medium">Stock Info</th>
               <th className="p-4 font-medium text-center">Actions</th>
             </tr>
           </thead>
@@ -160,12 +161,12 @@ export function CategoryTable() {
                   key={cat.id}
                   className="hover:bg-gray-50/50 transition-colors"
                 >
-                  <td className="p-4">
+                  {/* <td className="p-4">
                     <input
                       type="checkbox"
                       className="rounded text-[#DC8404] focus:ring-[#DC8404]"
                     />
-                  </td>
+                  </td> */}
                   <td className="p-4 font-medium text-gray-700">{cat.name}</td>
                   <td className="p-4 text-gray-600">
                     {Number(cat.totalQuantity || 0).toLocaleString()}

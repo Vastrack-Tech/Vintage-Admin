@@ -64,7 +64,7 @@ export function CustomerTable() {
               placeholder="Search Customer..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
+              className="w-full bg-gray-50 border-none rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-400 text-sm focus:ring-1 focus:ring-[#DC8404] outline-none"
             />
           </div>
 
@@ -72,12 +72,12 @@ export function CustomerTable() {
           <CustomerFilter onApply={handleApplyFilter} />
 
           {/* EXPORT */}
-          <Button
+          {/* <Button
             variant="outline"
-            className="gap-2 border-orange-200 text-[#DC8404] hover:bg-orange-50 rounded-lg"
+            className="gap-2 border-orange-200 bg-[#DC8404] hover:bg-orange-50 text-white rounded-lg"
           >
             <Download size={16} /> Download
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -86,19 +86,19 @@ export function CustomerTable() {
         <table className="w-full text-left">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold">
             <tr>
-              <th className="p-4 w-10">
+              {/* <th className="p-4 w-10">
                 <input
                   type="checkbox"
                   className="rounded border-gray-300 text-[#DC8404] focus:ring-[#DC8404]"
                 />
-              </th>
+              </th> */}
               <th className="p-4">Customer Name</th>
               <th className="p-4">Email</th>
               <th className="p-4">Phone No</th>
               <th className="p-4">Delivery Address</th>
               <th className="p-4">DOB</th>
-              <th className="p-4">Total Order Value</th>
-              <th className="p-4 text-center">Actions</th>
+              <th className="p-4">Order Value</th>
+              {/* <th className="p-4 text-center">Actions</th> */}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 text-sm">
@@ -120,12 +120,12 @@ export function CustomerTable() {
                   key={user.id}
                   className="hover:bg-gray-50/50 transition-colors"
                 >
-                  <td className="p-4">
+                  {/* <td className="p-4">
                     <input
                       type="checkbox"
                       className="rounded border-gray-300 text-[#DC8404] focus:ring-[#DC8404]"
                     />
-                  </td>
+                  </td> */}
                   <td className="p-4">
                     {/* REMOVED AVATAR IMAGE HERE */}
                     <div className="flex flex-col">
@@ -133,7 +133,7 @@ export function CustomerTable() {
                         {user.firstName} {user.lastName}
                       </span>
                       <span className="text-xs text-gray-500">
-                        User Account {user.id.slice(0, 6)}
+                       {user.id.slice(0, 6)}
                       </span>
                     </div>
                   </td>
@@ -157,14 +157,14 @@ export function CustomerTable() {
                   <td className="p-4 font-bold text-gray-900">
                     ₦{Number(user.totalOrderValue || 0).toLocaleString()}
                   </td>
-                  <td className="p-4 text-center">
+                  {/* <td className="p-4 text-center">
                     <Button
                       variant="ghost"
                       className="h-8 w-8 p-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600"
                     >
                       <Mail size={16} />
                     </Button>
-                  </td>
+                  </td> */}
                 </tr>
               ))
             )}
