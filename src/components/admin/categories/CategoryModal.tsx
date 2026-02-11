@@ -46,11 +46,11 @@ export function CategoryModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-black">
             {initialData ? "Edit Category" : "Add New Category"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onConfirm)} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit(onConfirm)} className="space-y-4 text-black py-4">
           <div className="space-y-2">
             <Label htmlFor="name">Category Name</Label>
             <Input
@@ -67,7 +67,7 @@ export function CategoryModal({
               placeholder="Short description..."
             />
           </div>
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-end text-white gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>

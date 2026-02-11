@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/axiosInstance";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -35,4 +35,19 @@ export const useProfile = () => {
     }, [query.data, query.isLoading, router]);
 
     return query;
+};
+
+export const useLogout = () => {
+    const router = useRouter();
+    const queryClient = useQueryClient();
+
+    return () => {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("token");
+        }
+        // Clear cache specifically for user
+        queryClient.setQueryData(["auth", "profile"], null);
+        queryClient.invalidateQueries({ queryKey: ["auth", "profile"] });
+        router.push("/login");
+    };
 };

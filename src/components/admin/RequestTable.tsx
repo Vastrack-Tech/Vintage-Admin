@@ -102,12 +102,12 @@ export function RequestsTable() {
           </div>
 
           {/* EXPORT */}
-          <Button
+          {/* <Button
             variant="outline"
-            className="gap-2 border-orange-200 text-[#DC8404] hover:bg-orange-50 rounded-lg"
+            className="gap-2 border-orange-200 text-white hover:bg-orange-50 bg-[#DC8404] rounded-lg"
           >
             <Download size={16} /> Export
-          </Button>
+          </Button> */}
         </div>
       </div>
 

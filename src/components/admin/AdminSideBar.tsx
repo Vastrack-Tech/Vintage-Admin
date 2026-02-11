@@ -11,8 +11,9 @@ import {
   FolderTree,
   Menu,
   X,
-  MessageSquare,
+  LogOut
 } from "lucide-react";
+import { useLogout } from "@/hooks/useProfile";
 import { Logo } from "@/components/Logo";
 
 const links = [
@@ -22,11 +23,8 @@ const links = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Categories", href: "/categories", icon: FolderTree },
   { name: "Requests", href: "/requests", icon: Users },
-  // { name: "Banners", href: "/admin/banners", icon: ImageIcon },
-  // { name: "Gift Cards", href: "/admin/gift-cards", icon: Gift },
 ];
 
-// 👇 1. Extract NavContent OUTSIDE the main component
 function NavContent({ pathname, onLinkClick }: { pathname: string; onLinkClick?: () => void }) {
   return (
     <nav className="flex-1 px-4 space-y-2 mt-6">
@@ -38,8 +36,8 @@ function NavContent({ pathname, onLinkClick }: { pathname: string; onLinkClick?:
             href={link.href}
             onClick={onLinkClick}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${isActive
-                ? "bg-[#FFF8E6] text-[#DC8404]"
-                : "text-gray-600 hover:bg-gray-50 hover:text-black"
+              ? "bg-[#FFF8E6] text-[#DC8404]"
+              : "text-gray-600 hover:bg-gray-50 hover:text-black"
               }`}
           >
             <link.icon size={20} />
@@ -53,11 +51,17 @@ function NavContent({ pathname, onLinkClick }: { pathname: string; onLinkClick?:
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const logout  = useLogout();
+
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setIsOpen(false);
+  };
 
   return (
     <>
-      {/* --- MOBILE HEADER (Visible only on small screens) --- */}
       <div className="lg:hidden flex items-center justify-between p-4 bg-white border-b border-gray-200 sticky top-0 z-30">
         <Logo className="w-24" />
         <button
@@ -90,10 +94,22 @@ export function AdminSidebar() {
             </div>
 
             <NavContent pathname={pathname} onLinkClick={() => setIsOpen(false)} />
+
+            {/* Mobile Logout Button */}
+            <div className="p-4 border-t border-gray-100 mt-auto">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut size={20} />
+                Logout
+              </button>
+            </div>
           </aside>
         </div>
       )}
 
+      {/* --- DESKTOP SIDEBAR --- */}
       <aside className="hidden lg:flex w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex-col">
         <div className="p-8">
           <Logo className="w-32" />
@@ -101,7 +117,15 @@ export function AdminSidebar() {
 
         <NavContent pathname={pathname} />
 
+        {/* Desktop Logout Button */}
         <div className="p-4 border-t border-gray-100 mt-auto">
+          <button
+            onClick={() => logout()}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
         </div>
       </aside>
     </>

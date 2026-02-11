@@ -2,8 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { Loader2, X, Plus } from "lucide-react";
+import { Loader2, X, Plus, Paintbrush } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/lib/axiosInstance";
@@ -26,17 +33,27 @@ interface ProductFormProps {
   initialData?: any;
 }
 
+// Define structure for Color Object
+interface ColorOption {
+  name: string;
+  hex: string;
+}
+
 export function ProductForm({ initialData }: ProductFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { data: categories, isLoading: isLoadingCategories } = useCategories();
+  const { data: categories } = useCategories();
 
   const [images, setImages] = useState<string[]>(initialData?.gallery || []);
 
-  // Specific State for Hair Logic
-  const [colors, setColors] = useState<string[]>([]);
+  // --- CHANGED: Colors is now an array of objects {name, hex} ---
+  const [colors, setColors] = useState<ColorOption[]>([]);
   const [lengths, setLengths] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState("");
+
+  // State for the Color Picker Inputs
+  const [tempColorName, setTempColorName] = useState("");
+  const [tempColorHex, setTempColorHex] = useState("#000000");
+  const [isColorPopoverOpen, setIsColorPopoverOpen] = useState(false);
 
   const {
     register,
@@ -60,68 +77,72 @@ export function ProductForm({ initialData }: ProductFormProps) {
     },
   });
 
-  const {
-    fields: variantFields,
-    replace: replaceVariants,
-  } = useFieldArray({ control, name: "variants" });
+  const { fields: variantFields, replace: replaceVariants } = useFieldArray({
+    control,
+    name: "variants",
+  });
 
   // --- 1. INITIALIZE DATA (Edit Mode) ---
   useEffect(() => {
     if (initialData?.options) {
+      // Logic for Colors: Handle legacy strings or new objects
       const colorOpt = initialData.options.find((o: any) => o.name === "Color");
+      if (colorOpt) {
+        // Check if values are strings or objects and normalize
+        const normalizedColors = colorOpt.values.map((val: any) => {
+          if (typeof val === "string") return { name: val, hex: "#000000" }; // Fallback for old data
+          return val;
+        });
+        setColors(normalizedColors);
+      }
+
       const lengthOpt = initialData.options.find((o: any) => o.name === "Length");
-      if (colorOpt) setColors(colorOpt.values);
       if (lengthOpt) setLengths(lengthOpt.values);
     }
   }, [initialData]);
 
   // --- 2. AUTO-GENERATE VARIANTS MATRIX ---
   useEffect(() => {
-    // If we have no colors or lengths, don't generate (or clear)
-    if (colors.length === 0 && lengths.length === 0) {
-      // Don't clear if it's initial load to prevent wiping existing data
-      // We rely on user action (adding/removing colors/lengths) to trigger this mostly.
-      return;
-    }
+    if (colors.length === 0 && lengths.length === 0) return;
 
     const currentVariants = watch("variants") || [];
     const newVariants: any[] = [];
 
-    // If only colors exist (e.g. "Red", "Blue")
     if (colors.length > 0 && lengths.length === 0) {
       colors.forEach((color) => {
-        newVariants.push(createVariantObject(color, { Color: color }, currentVariants));
+        newVariants.push(
+          createVariantObject(color.name, { Color: color.name }, currentVariants)
+        );
       });
-    }
-    // If only lengths exist (e.g. "14", "16")
-    else if (lengths.length > 0 && colors.length === 0) {
+    } else if (lengths.length > 0 && colors.length === 0) {
       lengths.forEach((len) => {
-        newVariants.push(createVariantObject(`${len}"`, { Length: len }, currentVariants));
+        newVariants.push(
+          createVariantObject(`${len}"`, { Length: len }, currentVariants)
+        );
       });
-    }
-    // If BOTH exist (Matrix)
-    else {
+    } else {
       colors.forEach((color) => {
         lengths.forEach((len) => {
-          const name = `${color} / ${len}"`;
-          const attributes = { Color: color, Length: len };
+          const name = `${color.name} / ${len}"`;
+          const attributes = { Color: color.name, Length: len };
           newVariants.push(createVariantObject(name, attributes, currentVariants));
         });
       });
     }
 
-    // Only update if count changed or strictly needed to avoid infinite loops
-    // (Simple check: if we generated something different than what we have)
     if (newVariants.length > 0) {
       replaceVariants(newVariants);
     }
-  }, [colors, lengths]); // Dependencies: Only run when Colors or Lengths array changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colors, lengths]);
 
-  // Helper to preserve existing data (Stock, Price) when regenerating
-  const createVariantObject = (name: string, attributes: any, currentList: any[]) => {
-    // Try to find if this variant existed before (by name or attributes)
-    const existing = currentList.find((v) =>
-      JSON.stringify(v.attributes) === JSON.stringify(attributes)
+  const createVariantObject = (
+    name: string,
+    attributes: any,
+    currentList: any[]
+  ) => {
+    const existing = currentList.find(
+      (v) => JSON.stringify(v.attributes) === JSON.stringify(attributes)
     );
 
     return {
@@ -134,23 +155,43 @@ export function ProductForm({ initialData }: ProductFormProps) {
     };
   };
 
-  // --- HANDLERS FOR TAG INPUTS ---
-  const addTag = (type: "color" | "length", value: string) => {
-    if (!value.trim()) return;
-    if (type === "color" && !colors.includes(value)) setColors([...colors, value]);
-    if (type === "length" && !lengths.includes(value)) setLengths([...lengths, value]);
+  // --- HANDLERS ---
+
+  const addColor = () => {
+    if (!tempColorName.trim()) return;
+    // Prevent duplicates
+    if (!colors.some((c) => c.name.toLowerCase() === tempColorName.toLowerCase())) {
+      setColors([...colors, { name: tempColorName, hex: tempColorHex }]);
+    }
+    setTempColorName("");
+    setTempColorHex("#000000");
+    setIsColorPopoverOpen(false);
   };
 
-  const removeTag = (type: "color" | "length", value: string) => {
-    if (type === "color") setColors(colors.filter((c) => c !== value));
-    if (type === "length") setLengths(lengths.filter((l) => l !== value));
+  const removeColor = (nameToRemove: string) => {
+    setColors(colors.filter((c) => c.name !== nameToRemove));
+  };
+
+  const addLength = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = e.currentTarget.value.trim();
+      if (val && !lengths.includes(val)) {
+        setLengths([...lengths, val]);
+      }
+      e.currentTarget.value = "";
+    }
+  };
+
+  const removeLength = (val: string) => {
+    setLengths(lengths.filter((l) => l !== val));
   };
 
   // --- MUTATION ---
   const mutation = useMutation({
     mutationFn: async (data: any) => {
-      // Prepare Options Structure
       const options = [];
+      // Pass the full color object {name, hex} to backend
       if (colors.length > 0) options.push({ name: "Color", values: colors });
       if (lengths.length > 0) options.push({ name: "Length", values: lengths });
 
@@ -158,23 +199,31 @@ export function ProductForm({ initialData }: ProductFormProps) {
         ...data,
         priceNgn: Number(data.priceNgn),
         priceUsd: Number(data.priceUsd),
-        compareAtPriceNgn: data.compareAtPriceNgn ? Number(data.compareAtPriceNgn) : null,
-        compareAtPriceUsd: data.compareAtPriceUsd ? Number(data.compareAtPriceUsd) : null,
+        compareAtPriceNgn: data.compareAtPriceNgn
+          ? Number(data.compareAtPriceNgn)
+          : null,
+        compareAtPriceUsd: data.compareAtPriceUsd
+          ? Number(data.compareAtPriceUsd)
+          : null,
         stockQuantity: Number(data.stockQuantity),
         gallery: images,
         isHot: Boolean(data.isHot),
-        options: options, // 👈 Save the structure so we can edit later
+        options: options,
         variants: data.variants.map((v: any) => ({
           name: v.name,
           stockQuantity: Number(v.stockQuantity),
           attributes: v.attributes,
-          priceOverrideNgn: v.priceOverrideNgn ? Number(v.priceOverrideNgn) : null,
-          priceOverrideUsd: v.priceOverrideUsd ? Number(v.priceOverrideUsd) : null,
+          priceOverrideNgn: v.priceOverrideNgn
+            ? Number(v.priceOverrideNgn)
+            : null,
+          priceOverrideUsd: v.priceOverrideUsd
+            ? Number(v.priceOverrideUsd)
+            : null,
           image: v.image || null,
         })),
       };
 
-      // Clean up utility fields if present
+      // Clean fields
       delete payload.category;
       delete payload.reviews;
 
@@ -208,10 +257,11 @@ export function ProductForm({ initialData }: ProductFormProps) {
       className="bg-white text-black p-6 md:p-8 rounded-[20px] shadow-sm max-w-7xl mx-auto border border-gray-100"
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-
         {/* LEFT COLUMN: IMAGES */}
         <div className="lg:col-span-5 space-y-6">
-          <label className="block text-sm font-bold text-black">Product Gallery</label>
+          <label className="block text-sm font-bold text-black">
+            Product Gallery
+          </label>
           <div className="bg-gray-50 p-6 rounded-2xl border border-dashed border-gray-200">
             <ImageUpload
               value={images}
@@ -227,12 +277,16 @@ export function ProductForm({ initialData }: ProductFormProps) {
           {/* Basic Info */}
           <div className="space-y-2">
             <label className="text-sm font-bold text-black">Product Name</label>
-            <input
+            <Input
               {...register("title", { required: "Title is required" })}
-              className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:border-[#DC8404] bg-gray-50/50"
+              className="h-12 border-gray-200 bg-gray-50/50"
               placeholder="e.g. Bone Straight Wig"
             />
-            {errors.title && <p className="text-red-500 text-xs">{errors.title.message as string}</p>}
+            {errors.title && (
+              <p className="text-red-500 text-xs">
+                {errors.title.message as string}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -240,25 +294,29 @@ export function ProductForm({ initialData }: ProductFormProps) {
               <label className="text-sm font-bold text-black">Category</label>
               <select
                 {...register("categoryId", { required: "Required" })}
-                className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:border-[#DC8404] bg-gray-50/50"
+                className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:border-[#DC8404] bg-gray-50/50 outline-none text-sm"
               >
                 <option value="">Select...</option>
                 {categories?.map((cat: any) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-bold text-black">Total Stock</label>
-              <input
+              <Input
                 type="number"
                 {...register("stockQuantity")}
                 disabled={variantFields.length > 0}
-                className="w-full h-12 px-4 border border-gray-200 rounded-xl focus:border-[#DC8404] bg-gray-50/50"
+                className="h-12 border-gray-200 bg-gray-50/50"
                 placeholder="Total sum of variants"
               />
               {variantFields.length > 0 && (
-                <p className="text-xs text-gray-400">Calculated automatically from variants.</p>
+                <p className="text-xs text-gray-400">
+                  Calculated automatically from variants.
+                </p>
               )}
             </div>
           </div>
@@ -267,26 +325,30 @@ export function ProductForm({ initialData }: ProductFormProps) {
             <label className="text-sm font-bold text-black">Description</label>
             <textarea
               {...register("description")}
-              className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:border-[#DC8404] bg-gray-50/50"
+              className="w-full h-32 p-4 border border-gray-200 rounded-xl focus:border-[#DC8404] bg-gray-50/50 outline-none"
             />
           </div>
 
           {/* Pricing */}
           <div className="grid grid-cols-2 gap-6 bg-[#FFF8E6]/50 p-6 rounded-2xl border border-[#DC8404]/10">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-black">Base Price (NGN)</label>
-              <input
+              <label className="text-sm font-bold text-black">
+                Base Price (NGN)
+              </label>
+              <Input
                 type="number"
                 {...register("priceNgn", { required: true })}
-                className="w-full h-12 px-4 border border-orange-200/50 rounded-xl focus:border-[#DC8404] bg-white"
+                className="h-12 border-orange-200/50 bg-white"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-bold text-black">Base Price (USD)</label>
-              <input
+              <label className="text-sm font-bold text-black">
+                Base Price (USD)
+              </label>
+              <Input
                 type="number"
                 {...register("priceUsd", { required: true })}
-                className="w-full h-12 px-4 border border-orange-200/50 rounded-xl focus:border-[#DC8404] bg-white"
+                className="h-12 border-orange-200/50 bg-white"
               />
             </div>
           </div>
@@ -295,54 +357,101 @@ export function ProductForm({ initialData }: ProductFormProps) {
           <div className="pt-6 border-t border-gray-100 space-y-6">
             <h3 className="font-bold text-lg text-black">Product Variants</h3>
 
-            {/* 1. COLORS INPUT */}
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase">1. Available Colors</label>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {colors.map((c) => (
-                  <span key={c} className="bg-black text-white px-3 py-1 rounded-full text-xs flex items-center gap-2">
-                    {c}
-                    <button type="button" onClick={() => removeTag("color", c)}><X size={12} /></button>
-                  </span>
+            {/* 1. COLORS INPUT (UPDATED WITH POPOVER) */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                1. Available Colors
+              </label>
+
+              {/* Active Color Chips */}
+              <div className="flex flex-wrap gap-2">
+                {colors.map((c, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-2 pl-1 pr-3 py-1 rounded-full bg-gray-100 border border-gray-200"
+                  >
+                    <div
+                      className="w-4 h-4 rounded-full border border-gray-300"
+                      style={{ backgroundColor: c.hex }}
+                    />
+                    <span className="text-xs font-medium">{c.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeColor(c.name)}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
                 ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  placeholder="Type color and press Enter (e.g. Natural, Red)"
-                  className="flex-1 h-10 px-3 border border-gray-200 rounded-lg text-sm"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addTag("color", e.currentTarget.value);
-                      e.currentTarget.value = "";
-                    }
-                  }}
-                />
+
+                {/* Add Color Popover */}
+                <Popover open={isColorPopoverOpen} onOpenChange={setIsColorPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 rounded-full border-dashed text-xs text-gray-500"
+                    >
+                      <Plus className="mr-1 h-3 w-3" /> Add Color
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-3" align="start">
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">Add New Color</h4>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Color Name</Label>
+                        <Input
+                          placeholder="e.g. Natural Black"
+                          value={tempColorName}
+                          onChange={(e) => setTempColorName(e.target.value)}
+                          className="h-8"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Pick Color</Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="color"
+                            value={tempColorHex}
+                            onChange={(e) => setTempColorHex(e.target.value)}
+                            className="w-10 h-8 p-1 cursor-pointer"
+                          />
+                          <span className="text-xs text-gray-500">{tempColorHex}</span>
+                        </div>
+                      </div>
+                      <Button onClick={addColor} size="sm" className="w-full bg-black text-white h-8 text-xs">
+                        Add Color
+                      </Button>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
-            {/* 2. LENGTHS INPUT */}
+            {/* 2. LENGTHS INPUT (EXISTING LOGIC) */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase">2. Available Lengths</label>
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                2. Available Lengths
+              </label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {lengths.map((l) => (
-                  <span key={l} className="bg-gray-200 text-black px-3 py-1 rounded-full text-xs flex items-center gap-2">
+                  <span
+                    key={l}
+                    className="bg-gray-200 text-black px-3 py-1 rounded-full text-xs flex items-center gap-2"
+                  >
                     {l}&quot;
-                    <button type="button" onClick={() => removeTag("length", l)}><X size={12} /></button>
+                    <button type="button" onClick={() => removeLength(l)}>
+                      <X size={12} />
+                    </button>
                   </span>
                 ))}
               </div>
               <div className="flex gap-2">
-                <input
+                <Input
                   placeholder="Type length and press Enter (e.g. 14, 16)"
-                  className="flex-1 h-10 px-3 border border-gray-200 rounded-lg text-sm"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addTag("length", e.currentTarget.value);
-                      e.currentTarget.value = "";
-                    }
-                  }}
+                  className="h-10 border-gray-200"
+                  onKeyDown={addLength}
                 />
               </div>
             </div>
@@ -369,27 +478,33 @@ export function ProductForm({ initialData }: ProductFormProps) {
                           {watch(`variants.${index}.name`)}
                         </td>
                         <td className="p-3">
-                          <input
-                            {...register(`variants.${index}.stockQuantity` as const)}
+                          <Input
+                            {...register(
+                              `variants.${index}.stockQuantity` as const
+                            )}
                             type="number"
-                            className="w-20 h-8 px-2 border border-gray-200 rounded bg-white focus:border-[#DC8404] outline-none text-xs"
+                            className="w-20 h-8 px-2 bg-white"
                             placeholder="0"
                           />
                         </td>
                         <td className="p-3">
-                          <input
-                            {...register(`variants.${index}.priceOverrideNgn` as const)}
-                            placeholder="Override"
+                          <Input
+                            {...register(
+                              `variants.${index}.priceOverrideNgn` as const
+                            )}
                             type="number"
-                            className="w-24 h-8 px-2 border border-gray-200 rounded bg-gray-50 focus:bg-white text-xs"
+                            className="w-24 h-8 px-2 bg-gray-50 focus:bg-white"
+                            placeholder="Override"
                           />
                         </td>
                         <td className="p-3">
-                          <input
-                            {...register(`variants.${index}.priceOverrideUsd` as const)}
-                            placeholder="Override"
+                          <Input
+                            {...register(
+                              `variants.${index}.priceOverrideUsd` as const
+                            )}
                             type="number"
-                            className="w-24 h-8 px-2 border border-gray-200 rounded bg-gray-50 focus:bg-white text-xs"
+                            className="w-24 h-8 px-2 bg-gray-50 focus:bg-white"
+                            placeholder="Override"
                           />
                         </td>
                         <td className="p-3">
@@ -399,7 +514,9 @@ export function ProductForm({ initialData }: ProductFormProps) {
                           >
                             <option value="">Default Img</option>
                             {images.map((img, i) => (
-                              <option key={i} value={img}>Image {i + 1}</option>
+                              <option key={i} value={img}>
+                                Image {i + 1}
+                              </option>
                             ))}
                           </select>
                         </td>
@@ -419,7 +536,13 @@ export function ProductForm({ initialData }: ProductFormProps) {
           disabled={mutation.isPending}
           className="bg-black hover:bg-gray-800 text-white h-14 px-12 rounded-xl text-lg font-medium w-full md:w-auto shadow-lg shadow-gray-200"
         >
-          {mutation.isPending ? <Loader2 className="animate-spin" /> : initialData ? "Update Product" : "Publish Product"}
+          {mutation.isPending ? (
+            <Loader2 className="animate-spin" />
+          ) : initialData ? (
+            "Update Product"
+          ) : (
+            "Publish Product"
+          )}
         </Button>
       </div>
     </form>
