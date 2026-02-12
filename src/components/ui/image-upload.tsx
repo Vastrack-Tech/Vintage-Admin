@@ -40,7 +40,7 @@ export default function ImageUpload({
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("upload_preset", "vintage_admin");
+        formData.append("upload_preset", "vintage");
 
         // 1. Determine correct Cloudinary resource type endpoint
         // Images go to /image/upload, Videos go to /video/upload
