@@ -21,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// ... (useDebounce hook remains the same)
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -116,8 +115,14 @@ export function OrderTable() {
                   <td className="p-6 font-medium text-gray-900">{order.id}</td>
                   <td className="p-6">
                     <div className="flex flex-col">
-                      <span className="font-medium text-gray-900">{order.user?.firstName} {order.user?.lastName}</span>
-                      <span className="text-xs text-gray-500">{order.user?.email}</span>
+                      <span className="font-medium text-gray-900">
+                        {order.user
+                          ? `${order.user.firstName} ${order.user.lastName}`
+                          : `${order.orderFirstName || ''} ${order.orderLastName || ''} (Guest)`}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {order.user?.email || order.orderEmail}
+                      </span>
                     </div>
                   </td>
                   <td className="p-6 text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</td>
@@ -147,7 +152,6 @@ export function OrderTable() {
                           Mark Delivered
                         </DropdownMenuItem>
 
-                        {/* Cancel is usually still needed for edge cases */}
                         <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleStatusClick(order.id, "cancelled"); }} className="text-red-600">
                           Cancel Order
                         </DropdownMenuItem>
@@ -218,7 +222,6 @@ export function OrderTable() {
   );
 }
 
-// 👇 UPDATED: Ensure these colors are consistent with User Dashboard
 function StatusBadge({ status }: { status: string }) {
   const styles: any = {
     pending: "bg-yellow-50 text-yellow-700 border border-yellow-100",
