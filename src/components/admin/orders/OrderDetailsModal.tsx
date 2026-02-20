@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { Loader2, Package, User, Mail, Phone, MapPin, MoreVertical, Edit } from "lucide-react";
+import { Loader2, Package, User, Mail, Phone, MapPin, Edit } from "lucide-react";
 import Image from "next/image";
 import { useAdminOrder, useUpdateOrderStatus } from "@/hooks/useAdminOrders";
 import { cn } from "@/lib/utils";
@@ -165,11 +165,11 @@ export function OrderDetailsModal({ orderId, onClose }: OrderDetailsModalProps) 
                                             <User size={20} />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">{order.user.firstName} {order.user.lastName}</p>
+                                            <p className="font-medium text-gray-900">{order.user?.firstName || order.firstName} {order.user?.lastName || order.lastName}</p>
                                             <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                                <Mail size={12} /> {order.user.email}
+                                                <Mail size={12} /> {order.user?.email || order.orderEmail}
                                             </p>
-                                            {order.user.phone && (
+                                            {order.user?.phone && (
                                                 <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
                                                     <Phone size={12} /> {order.user.phone}
                                                 </p>
