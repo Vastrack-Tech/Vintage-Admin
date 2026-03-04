@@ -128,10 +128,11 @@ export function CustomerTable() {
                   </td> */}
                   <td className="p-4">
                     {/* REMOVED AVATAR IMAGE HERE */}
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-1">
                       <span className="font-medium text-gray-900">
                         {user.firstName} {user.lastName}
                       </span>
+                      
                       <span className="text-xs text-gray-500">
                        {user.id.slice(0, 6)}
                       </span>

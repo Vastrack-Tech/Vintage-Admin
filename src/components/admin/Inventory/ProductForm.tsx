@@ -116,14 +116,17 @@ export function ProductForm({ initialData }: ProductFormProps) {
       });
     } else if (lengths.length > 0 && colors.length === 0) {
       lengths.forEach((len) => {
+        // Prevent double quoting like "12 inches""
+        const displayName = len.includes('"') || len.includes('inch') ? len : `${len}"`;
         newVariants.push(
-          createVariantObject(`${len}"`, { Length: len }, currentVariants)
+          createVariantObject(displayName, { Length: len }, currentVariants)
         );
       });
     } else {
       colors.forEach((color) => {
         lengths.forEach((len) => {
-          const name = `${color.name} / ${len}"`;
+          const lenDisplay = len.includes('"') || len.includes('inch') ? len : `${len}"`;
+          const name = `${color.name} / ${lenDisplay}`;
           const attributes = { Color: color.name, Length: len };
           newVariants.push(createVariantObject(name, attributes, currentVariants));
         });
@@ -141,11 +144,13 @@ export function ProductForm({ initialData }: ProductFormProps) {
     attributes: any,
     currentList: any[]
   ) => {
+    // Match safely by attributes instead of JSON.stringify to avoid key order issues
     const existing = currentList.find(
-      (v) => JSON.stringify(v.attributes) === JSON.stringify(attributes)
+      (v) => v.attributes?.Color === attributes.Color && v.attributes?.Length === attributes.Length
     );
 
     return {
+      id: existing?.id,
       name,
       attributes,
       stockQuantity: existing?.stockQuantity ?? 0,
@@ -154,7 +159,6 @@ export function ProductForm({ initialData }: ProductFormProps) {
       image: existing?.image ?? "",
     };
   };
-
   // --- HANDLERS ---
 
   const addColor = () => {
@@ -191,7 +195,6 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const mutation = useMutation({
     mutationFn: async (data: any) => {
       const options = [];
-      // Pass the full color object {name, hex} to backend
       if (colors.length > 0) options.push({ name: "Color", values: colors });
       if (lengths.length > 0) options.push({ name: "Length", values: lengths });
 
@@ -199,31 +202,27 @@ export function ProductForm({ initialData }: ProductFormProps) {
         ...data,
         priceNgn: Number(data.priceNgn),
         priceUsd: Number(data.priceUsd),
-        compareAtPriceNgn: data.compareAtPriceNgn
-          ? Number(data.compareAtPriceNgn)
-          : null,
-        compareAtPriceUsd: data.compareAtPriceUsd
-          ? Number(data.compareAtPriceUsd)
-          : null,
+        compareAtPriceNgn: data.compareAtPriceNgn ? Number(data.compareAtPriceNgn) : null,
+        compareAtPriceUsd: data.compareAtPriceUsd ? Number(data.compareAtPriceUsd) : null,
         stockQuantity: Number(data.stockQuantity),
         gallery: images,
         isHot: Boolean(data.isHot),
         options: options,
         variants: data.variants.map((v: any) => ({
+          id: v.id,
           name: v.name,
           stockQuantity: Number(v.stockQuantity),
           attributes: v.attributes,
-          priceOverrideNgn: v.priceOverrideNgn
+          priceOverrideNgn: v.priceOverrideNgn !== "" && v.priceOverrideNgn != null
             ? Number(v.priceOverrideNgn)
             : null,
-          priceOverrideUsd: v.priceOverrideUsd
+          priceOverrideUsd: v.priceOverrideUsd !== "" && v.priceOverrideUsd != null
             ? Number(v.priceOverrideUsd)
             : null,
           image: v.image || null,
         })),
       };
 
-      // Clean fields
       delete payload.category;
       delete payload.reviews;
 
