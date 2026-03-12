@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Copy, // 👇 Added Copy icon
 } from "lucide-react";
 import { useInventory, useDeleteProduct } from "@/hooks/useInventory";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,7 @@ import { InventoryView } from "./InventoryStats";
 interface ProductTableProps {
   onFilterChange: (filters: FilterValues) => void;
   filters?: FilterValues;
-  view: InventoryView; // 👇 New Prop
+  view: InventoryView;
 }
 
 export function ProductTable({ onFilterChange, filters, view }: ProductTableProps) {
@@ -30,21 +31,19 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
 
   const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
 
-  // Pass 'view' to the hook (Ensure your useInventory hook passes this to Axios)
   const { data, isLoading } = useInventory({
     page,
     limit: 10,
     search,
-    view, // 👇 Sending view to backend
+    view,
     ...filters,
   });
 
   const products = data?.data || [];
   const meta = data?.meta || { total: 0, totalPages: 1, page: 1 };
 
-  // ... handlers (delete) remain same ...
   const handleDeleteClick = (product: any) => setProductToDelete({ id: product.id, title: product.title });
-  const handleConfirmDelete = () => { /* ... */ };
+  const handleConfirmDelete = () => { /* Add your delete trigger here */ };
 
   return (
     <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
@@ -53,7 +52,6 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
         <h3 className="text-lg font-bold text-black">
           {view === 'sold' ? 'Top Selling Products' : view === 'empty' ? 'Out of Stock Products' : 'Product List'}
         </h3>
-        {/* ... Search and Filter UI ... */}
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-black w-4 h-4" />
@@ -75,15 +73,10 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
             <tr>
               <th className="p-6">Product Name</th>
               <th className="p-6">Sale Price</th>
-
-              {/* 👇 DYNAMIC HEADER */}
               <th className="p-6">
                 {view === 'sold' ? "Units Sold" : "Stock Quantity"}
               </th>
-
               <th className="p-6">Category</th>
-
-              {/* 👇 HIDE ACTIONS IF VIEW IS 'SOLD' */}
               {view !== 'sold' && <th className="p-6 text-right">Actions</th>}
             </tr>
           </thead>
@@ -107,13 +100,10 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
                     ₦{Number(product.priceNgn).toLocaleString()}
                   </td>
 
-                  {/* 👇 DYNAMIC CELL CONTENT */}
                   <td className="p-6 text-sm text-black">
                     {view === 'sold' ? (
-                      // If 'sold' view, backend returns totalSold
                       <span className="font-bold text-[#DC8404]">{product.totalSold || 0} Sold</span>
                     ) : (
-                      // If standard view, sum variants stock
                       product.variants && product.variants.length > 0
                         ? product.variants.reduce((acc: number, v: any) => acc + (v.stockQuantity || 0), 0)
                         : product.stockQuantity || 0
@@ -122,16 +112,24 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
 
                   <td className="p-6 text-sm text-black">{product.category?.name || "-"}</td>
 
-                  {/* 👇 HIDE ACTIONS IF VIEW IS 'SOLD' */}
                   {view !== 'sold' && (
                     <td className="p-6 text-right">
                       <div className="flex items-center justify-end gap-2 transition-opacity">
+
+                        {/* 👇 NEW DUPLICATE BUTTON */}
+                        <Link href={`/inventory/add?duplicateId=${product.id}`}>
+                          <button title="Duplicate Product" className="p-2 text-black hover:text-[#DC8404] hover:bg-[#FFF8E6] rounded-full transition-colors">
+                            <Copy size={16} />
+                          </button>
+                        </Link>
+
                         <Link href={`/inventory/${product.id}`}>
-                          <button className="p-2 text-black hover:text-[#DC8404] hover:bg-[#FFF8E6] rounded-full transition-colors">
+                          <button title="Edit Product" className="p-2 text-black hover:text-[#DC8404] hover:bg-[#FFF8E6] rounded-full transition-colors">
                             <Pencil size={16} />
                           </button>
                         </Link>
-                        <button onClick={() => handleDeleteClick(product)} className="p-2 text-black hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+
+                        <button onClick={() => handleDeleteClick(product)} title="Delete Product" className="p-2 text-black hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
                           <Trash2 size={16} />
                         </button>
                       </div>
@@ -146,13 +144,11 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
 
       {/* Pagination Footer */}
       <div className="p-6 border-t border-gray-100 flex items-center justify-between text-sm text-black">
-        {/* ... (Pagination code remains exactly the same) */}
         <span>Total Items {meta.total}</span>
         <div className="flex items-center gap-2">
           <button className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
             <ChevronLeft size={16} />
           </button>
-          {/* Simple Pagination Logic */}
           <button className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#DC8404] text-black">
             {page}
           </button>
