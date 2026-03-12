@@ -11,7 +11,7 @@ import {
   FolderTree,
   Menu,
   X,
-  LogOut
+  LogOut,
 } from "lucide-react";
 import { useLogout } from "@/hooks/useProfile";
 import { Logo } from "@/components/Logo";
@@ -23,6 +23,7 @@ const links = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Categories", href: "/categories", icon: FolderTree },
   { name: "Requests", href: "/requests", icon: Users },
+  { name: "Colours", href: "/colours", icon: Users },
 ];
 
 function NavContent({ pathname, onLinkClick }: { pathname: string; onLinkClick?: () => void }) {
