@@ -27,7 +27,7 @@ const useGlobalColors = () => {
   return useQuery({
     queryKey: ["global-colors"],
     queryFn: async () => {
-      const { data } = await api.get("/admin/colors");
+      const { data } = await api.get("/admin/colors")
       return data;
     },
   });
@@ -62,7 +62,11 @@ export function ProductForm({ initialData }: ProductFormProps) {
   const [variantIdMap, setVariantIdMap] = useState<Record<string, string>>({});
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
-    defaultValues: initialData || {
+    // If initialData exists, explicitly set stockQuantity to "" if it is null so RHF doesn't crash
+    defaultValues: initialData ? {
+      ...initialData,
+      stockQuantity: initialData.stockQuantity ?? "",
+    } : {
       title: "",
       description: "",
       categoryId: "",
@@ -99,8 +103,13 @@ export function ProductForm({ initialData }: ProductFormProps) {
             });
           }
           if (!sMatrix[length]) sMatrix[length] = {};
-          sMatrix[length][color || "default"] = v.stockQuantity?.toString() || "0";
-          idMap[`${length}-${color}`] = v.id; // Store ID for safe updates
+
+          // 👇 Safely handle null from database to prevent it coercing to "0"
+          sMatrix[length][color || "default"] = v.stockQuantity !== null && v.stockQuantity !== undefined
+            ? v.stockQuantity.toString()
+            : "";
+
+          idMap[`${length}-${color}`] = v.id;
         }
       });
 
@@ -165,19 +174,30 @@ export function ProductForm({ initialData }: ProductFormProps) {
       // 2. Compile Matrix into the 1D Variants Array
       const compiledVariants: any[] = [];
       let totalMatrixStock = 0;
+      let hasUntrackedVariant = false; // Flag if ANY variant is left blank
 
       lengthConfigs.forEach((lConf) => {
         const length = lConf.length;
 
         selectedColors.forEach((color) => {
-          const stockStr = stockMatrix[length]?.[color] || "0";
-          const stock = parseInt(stockStr, 10) || 0;
-          totalMatrixStock += stock;
+          const stockStr = stockMatrix[length]?.[color];
+
+          // 👇 Ensure strict empty string check to pass null
+          const stock = (stockStr === undefined || stockStr === null || String(stockStr).trim() === "")
+            ? null
+            : parseInt(String(stockStr), 10);
+
+          // 👇 Single addition block to prevent double-counting
+          if (stock !== null) {
+            totalMatrixStock += stock;
+          } else {
+            hasUntrackedVariant = true;
+          }
 
           compiledVariants.push({
             id: variantIdMap[`${length}-${color}`], // Retain ID if updating
             name: `${color} / ${length}`,
-            stockQuantity: stock,
+            stockQuantity: stock, // Safely passes null now
             attributes: { Color: color, Length: length },
             priceOverrideNgn: lConf.priceNgn !== "" ? parseFloat(lConf.priceNgn) : null,
             priceOverrideUsd: lConf.priceUsd !== "" ? parseFloat(lConf.priceUsd) : null,
@@ -186,6 +206,16 @@ export function ProductForm({ initialData }: ProductFormProps) {
         });
       });
 
+      // 👇 Added trim() check for baseStock
+      const baseStockStr = data.stockQuantity;
+      const parsedBaseStock = (baseStockStr === undefined || baseStockStr === null || String(baseStockStr).trim() === "")
+        ? null
+        : parseInt(baseStockStr, 10);
+
+      const finalProductStock = compiledVariants.length > 0
+        ? (hasUntrackedVariant ? null : totalMatrixStock)
+        : parsedBaseStock;
+
       // 3. Construct Final Payload
       const payload = {
         ...data,
@@ -193,7 +223,7 @@ export function ProductForm({ initialData }: ProductFormProps) {
         priceUsd: parseFloat(data.priceUsd),
         compareAtPriceNgn: data.compareAtPriceNgn ? parseFloat(data.compareAtPriceNgn) : null,
         compareAtPriceUsd: data.compareAtPriceUsd ? parseFloat(data.compareAtPriceUsd) : null,
-        stockQuantity: compiledVariants.length > 0 ? totalMatrixStock : parseFloat(data.stockQuantity || "0"),
+        stockQuantity: finalProductStock,
         gallery: images,
         isHot: Boolean(data.isHot),
         options: options,
@@ -271,7 +301,16 @@ export function ProductForm({ initialData }: ProductFormProps) {
 
           <div className="space-y-2">
             <label className="text-sm font-bold text-black">Total Base Stock</label>
-            <Input type="number" {...register("stockQuantity")} disabled={showMatrix} className="h-12 border-gray-200 bg-gray-50/50" placeholder="0" />
+            <Input
+              type="number"
+              {...register("stockQuantity", {
+                // Force RHF to register blank entries as null
+                setValueAs: (v) => v === "" ? null : parseInt(v, 10)
+              })}
+              disabled={showMatrix}
+              className="h-12 border-gray-200 bg-gray-50/50 placeholder:text-gray-400 text-sm"
+              placeholder="Leave blank for unlimited"
+            />
             {showMatrix && <p className="text-xs text-gray-400">Locked. Calculated automatically from the stock matrix.</p>}
           </div>
         </div>
@@ -385,10 +424,10 @@ export function ProductForm({ initialData }: ProductFormProps) {
                             <td key={color} className="p-2">
                               <Input
                                 type="number"
-                                placeholder="0"
+                                placeholder="Unlimited"
                                 value={stockMatrix[lConf.length]?.[color] || ""}
                                 onChange={(e) => updateStock(lConf.length, color, e.target.value)}
-                                className="h-9 text-center bg-transparent border-transparent hover:border-gray-200 focus:bg-white transition-colors"
+                                className="h-9 text-center bg-transparent border-transparent hover:border-gray-200 focus:bg-white transition-colors placeholder:text-gray-300"
                               />
                             </td>
                           ))}

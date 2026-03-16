@@ -70,8 +70,8 @@ export function OrderDetailsModal({ orderId, onClose }: OrderDetailsModalProps) 
         );
     };
 
-    // Helper for shipping address (from previous step)
-    const shippingAddress = order?.user?.addresses?.find((a: any) => a.isDefault) || order?.user?.addresses?.[0];
+    // 👇 FIX: Pull shipping address directly from the order snapshot
+    const shippingAddress = order?.shippingAddress;
 
     return (
         <>
@@ -165,13 +165,17 @@ export function OrderDetailsModal({ orderId, onClose }: OrderDetailsModalProps) 
                                             <User size={20} />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">{order.user?.firstName || order.firstName} {order.user?.lastName || order.lastName}</p>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                                <Mail size={12} /> {order.user?.email || order.orderEmail}
+                                            {/* 👇 FIX: Safe fallbacks for Guest Users */}
+                                            <p className="font-medium text-gray-900">
+                                                {order.user?.firstName || order.firstName} {order.user?.lastName || order.lastName}
+                                                {!order.user && <span className="ml-2 text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Guest</span>}
                                             </p>
-                                            {order.user?.phone && (
+                                            <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                                <Mail size={12} /> {order.user?.email || order.email}
+                                            </p>
+                                            {(order.user?.phone || order.phone) && (
                                                 <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                                    <Phone size={12} /> {order.user.phone}
+                                                    <Phone size={12} /> {order.user?.phone || order.phone}
                                                 </p>
                                             )}
                                         </div>
@@ -184,12 +188,14 @@ export function OrderDetailsModal({ orderId, onClose }: OrderDetailsModalProps) 
                                         </div>
                                         <div>
                                             <p className="font-medium text-gray-900">Shipping Address</p>
+                                            {/* 👇 FIX: Render directly from the order.shippingAddress object */}
                                             {shippingAddress ? (
                                                 <div className="text-sm text-gray-500 mt-1 leading-relaxed">
+                                                    <p className="font-medium text-gray-800 mb-1">{shippingAddress.firstName} {shippingAddress.lastName}</p>
                                                     <p>{shippingAddress.addressLine}</p>
-                                                    <p>{shippingAddress.city}, {shippingAddress.state}</p>
-                                                    {shippingAddress.postalCode && <p>{shippingAddress.postalCode}</p>}
-                                                    <p className="text-xs mt-1 text-gray-400">{shippingAddress.phone}</p>
+                                                    <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.postalCode || ''}</p>
+                                                    <p>{shippingAddress.country}</p>
+                                                    <p className="text-xs mt-1 text-gray-400 font-medium">📞 {shippingAddress.phone}</p>
                                                 </div>
                                             ) : (
                                                 <p className="text-sm text-gray-400 italic mt-1">No address on file</p>

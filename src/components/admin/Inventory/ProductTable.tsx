@@ -10,7 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  Copy, // 👇 Added Copy icon
+  Copy,
 } from "lucide-react";
 import { useInventory, useDeleteProduct } from "@/hooks/useInventory";
 import { cn } from "@/lib/utils";
@@ -43,7 +43,16 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
   const meta = data?.meta || { total: 0, totalPages: 1, page: 1 };
 
   const handleDeleteClick = (product: any) => setProductToDelete({ id: product.id, title: product.title });
-  const handleConfirmDelete = () => { /* Add your delete trigger here */ };
+
+  const handleConfirmDelete = () => {
+    if (productToDelete?.id) {
+      deleteProduct(productToDelete.id, {
+        onSuccess: () => {
+          setProductToDelete(null);
+        }
+      });
+    }
+  };
 
   return (
     <div className="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
@@ -100,13 +109,15 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
                     ₦{Number(product.priceNgn).toLocaleString()}
                   </td>
 
+                  {/* 👇 FIX: Clean, math-free stock rendering */}
                   <td className="p-6 text-sm text-black">
                     {view === 'sold' ? (
                       <span className="font-bold text-[#DC8404]">{product.totalSold || 0} Sold</span>
-                    ) : (
-                      product.variants && product.variants.length > 0
-                        ? product.variants.reduce((acc: number, v: any) => acc + (v.stockQuantity || 0), 0)
-                        : product.stockQuantity || 0
+                    ) : product.stockQuantity === null || product.stockQuantity === undefined ? (
+                      <span className="text-blue-500 font-semibold">Unlimited</span>) : (
+                      <span className={product.stockQuantity === 0 ? "text-red-500 font-medium" : ""}>
+                        {product.stockQuantity}
+                      </span>
                     )}
                   </td>
 
@@ -116,7 +127,6 @@ export function ProductTable({ onFilterChange, filters, view }: ProductTableProp
                     <td className="p-6 text-right">
                       <div className="flex items-center justify-end gap-2 transition-opacity">
 
-                        {/* 👇 NEW DUPLICATE BUTTON */}
                         <Link href={`/inventory/add?duplicateId=${product.id}`}>
                           <button title="Duplicate Product" className="p-2 text-black hover:text-[#DC8404] hover:bg-[#FFF8E6] rounded-full transition-colors">
                             <Copy size={16} />
